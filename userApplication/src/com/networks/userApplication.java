@@ -3,15 +3,17 @@ package com.networks;
 import ithakimodem.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.TimeUnit;
+import java.util.Arrays;
 
 public class userApplication {
-    public static void main(String[] args) {
-        Modem modem = new Modem(8000);
-        modem.setTimeout(2000);
+    public static void main(String[] args) throws IOException{
+        Modem modem = new Modem(12000);
+        modem.setTimeout(8000);
         modem.open("ithaki");
 
         (new userApplication()).initialization(modem, "ATD2310ITHAKI\r");
-        (new userApplication()).echo(modem, "E3865");
+        (new userApplication()).echo(modem, "E2449\r");
 
         modem.close();
     }
@@ -28,52 +30,67 @@ public class userApplication {
                 }
                 System.out.print(((char) sym));
 
-            } catch (Exception x) {
+            } 
+            catch (Exception x) {
                 break;
             }
         }
     }
 
-    public void echo(Modem modem, String address){
+    public void echo(Modem modem, String address) throws IOException{
         int sym;
         int packet_counter;
         double tic;
         double tac;
         int duration;
+        long start;
+        int[] delays = {};
+
         String message = "";
 
-        modem.write(address.getBytes());
-        tic = System.currentTimeMillis();
+        start = System.currentTimeMillis();
+        
+        tic = 0;
+        tac = 0;
 
-        for(; ;){
-            try{
-                sym = modem.read();
-                System.out.println("I'm here!");
-                System.out.println("Sym =" + sym);
-                if(sym == -1){
+        while((int)(tac - start) < 242000){
+            modem.write(address.getBytes());
+            for(;;){
+                try{
+                    sym = modem.read();
+                    if(sym == -1){
+                        break;
+                    }
+                    message += (char)sym;
+
+                    if(message.contains("PSTART ")){
+                        message = "";
+                        tic = System.currentTimeMillis();
+                        System.out.println("Tic = " + tic);
+                    }
+
+                    if(message.contains(" PSTOP")){
+                        System.out.println(message);
+                        message = "";
+                        tac = System.currentTimeMillis();
+                        duration = (int)(tac - tic);
+                        delays = Arrays.copyOf(delays, delays.length + 1);
+                        delays[delays.length - 1] = duration;
+                        System.out.println("Response time = " + duration + "ms");
+                    }
+                }
+                catch(Exception e) {
                     break;
                 }
-                message += (char)sym;
-                System.out.println("Message = " + message);
-
-                if(message.equals("PSTART ")){
-                    message = "";
-                }
-
-                if(message.equals(" PSTOP")){
-                    System.out.println(message);
-                    message = "";
-                    tac = System.currentTimeMillis();
-                    duration = (int)(tac - tic);
-                    System.out.println("Response time = " + duration + "ms");
-                }
-            }
-            catch(Exception e) {
-                break;
             }
         }
-
-
+        try (FileWriter pr = new FileWriter("Delays.csv")){
+            for (int j = 0; j < delays.length; j++){
+                pr.append(String.valueOf(delays[j]));
+                pr.append("\n");
+            }
+            pr.close();
+        }
     }
 
 }
