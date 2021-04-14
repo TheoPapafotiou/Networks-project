@@ -7,13 +7,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.Arrays;
 
 public class userApplication {
+
+    private static final int BUFFER_SIZE = 4096; // 4KB
     public static void main(String[] args) throws IOException{
         Modem modem = new Modem(12000);
         modem.setTimeout(8000);
         modem.open("ithaki");
 
         (new userApplication()).initialization(modem, "ATD2310ITHAKI\r");
-        (new userApplication()).echo(modem, "E2449\r");
+        //(new userApplication()).echo(modem, "E2449\r");
+        //(new userApplication()).video(modem, "M3435\r");
+        (new userApplication()).video(modem, "G5704\r");
 
         modem.close();
     }
@@ -53,7 +57,7 @@ public class userApplication {
         tic = 0;
         tac = 0;
 
-        while((int)(tac - start) < 242000){
+        while((int)(tac - start) < 246000){
             modem.write(address.getBytes());
             for(;;){
                 try{
@@ -79,7 +83,7 @@ public class userApplication {
                         System.out.println("Response time = " + duration + "ms");
                     }
                 }
-                catch(Exception e) {
+                catch(Exception ex) {
                     break;
                 }
             }
@@ -90,6 +94,27 @@ public class userApplication {
                 pr.append("\n");
             }
             pr.close();
+        }
+    }
+
+    public void video(Modem modem, String address) throws IOException{
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int count_bytes = 0;
+        String outputFile = "FrameErrors.jpg";
+
+        modem.write(address.getBytes());
+        try(OutputStream outputStream = new FileOutputStream(outputFile);)
+        {
+            int byteRead;
+            while ((byteRead = modem.read()) != -1){
+                //System.out.println("ByteRead = " + byteRead);
+                outputStream.write(byteRead);
+                count_bytes++;
+            }
+            System.out.println("Number of bytes: " + count_bytes);               
+        }
+        catch(Exception ex) {
+            ex.printStackTrace();
         }
     }
 
