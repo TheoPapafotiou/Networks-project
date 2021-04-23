@@ -15,13 +15,13 @@ public class userApplication {
         int numOfT = 60; // number of points for gps
 
         String init_code = "ATD2310ITHAKI\r";
-        String echo_code = "E8967\r";
-        String video_code = "M2344\r"; //CAM=PTZ
-        String video_errors_code = "G7756 CAM=PTZ\r";
-        String gps_code = "P9433";
-        String gps_code_T = "P9433"+"R=10074"+String.valueOf(numOfT)+"\r";
-        String ack_code = "Q8098\r"; 
-        String nack_code = "R6481\r";
+        String echo_code = "E3484\r";
+        String video_code = "M6027 CAM=PTZ\r"; //CAM=PTZ DIR=D
+        String video_errors_code = "G2436\r";
+        String gps_code = "P9302";
+        String gps_code_T = "P9302"+"R=10120"+String.valueOf(numOfT)+"\r";
+        String ack_code = "Q5860\r"; 
+        String nack_code = "R7086\r";
 
         (new userApplication()).initialization(modem, init_code);
         //(new userApplication()).echo(modem, echo_code);
@@ -99,7 +99,7 @@ public class userApplication {
             delays[delays.length - 1] = duration;
             System.out.println("Response time = " + duration + "ms");
         }
-        try (FileWriter pr = new FileWriter("Delays2_session1.csv")){
+        try (FileWriter pr = new FileWriter("Response_times_echo.csv")){
             for (int j = 0; j < delays.length; j++){
                 pr.append(String.valueOf(j+1)+","+String.valueOf(delays[j]));
                 pr.append("\n");
@@ -111,7 +111,7 @@ public class userApplication {
     public void video(Modem modem, String address) throws IOException{
         // byte[] buffer = new byte[BUFFER_SIZE];
         int count_bytes = 0;
-        String outputFile = "Frame_errors_moving_session1.jpg";
+        String outputFile = "Frame.jpg";
 
         modem.write(address.getBytes());
         try(OutputStream outputStream = new FileOutputStream(outputFile);)
@@ -199,7 +199,7 @@ public class userApplication {
     {
         
         int count_bytes = 0;
-        String outputFile = "GPS3_session1.jpg";
+        String outputFile = "GPS.jpg";
 
         for (int i = 0; i < 54; i+= 6)
         {
@@ -307,7 +307,7 @@ public class userApplication {
             {
                 xor_result = xor_result^(int) c;
             }
-            System.out.println("This is an XOR result: " + xor_result + " and this is the FCS result: " + FCS.get(FCS.size() - 1));
+            // System.out.println("This is an XOR result: " + xor_result + " and this is the FCS result: " + FCS.get(FCS.size() - 1));
 
             if (xor_result == FCS.get(FCS.size() - 1))
             {
@@ -332,7 +332,7 @@ public class userApplication {
         System.out.println("\n" + repeat_until_correct);
         System.out.println("\n" + "Length of responses array: " + responses.length);
 
-        try (FileWriter pr = new FileWriter("Responses2_session1.csv"))
+        try (FileWriter pr = new FileWriter("Response_times_arq.csv"))
         {
             for (int j = 0; j < responses.length; j++){
                 pr.append(String.valueOf(j+1)+","+String.valueOf(responses[j]));
@@ -340,7 +340,7 @@ public class userApplication {
             }
             pr.close();
         }
-        try (FileWriter pr = new FileWriter("Repeats2_session1.csv"))
+        try (FileWriter pr = new FileWriter("Repeats_arq.csv"))
         {
             for (int j = 0; j < repeat_until_correct.size(); j++){
                 pr.append(String.valueOf(j+1)+","+String.valueOf(repeat_until_correct.get(j)));
