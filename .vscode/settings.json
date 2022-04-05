@@ -1,0 +1,9 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "userApplication/ithakimodem.jar"
+    ],
+    "java.project.sourcePaths": [
+        "userApplication"
+    ]
+}
